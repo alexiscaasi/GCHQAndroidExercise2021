@@ -10,3 +10,6 @@ Create an app that allows a user to find their car or another important location
 1. - [ ] Let the user navigate to their map pin
 2. - [X] Center the map on the user
 3. - [ ] Tell the user how far away their car is
+
+![Requesting Location Permission](permissions.png)
+![Recording of app](GCHQ.gif)
