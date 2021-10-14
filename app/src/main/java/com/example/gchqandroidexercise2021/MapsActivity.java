@@ -1,21 +1,19 @@
 package com.example.gchqandroidexercise2021;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -31,17 +29,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import java.util.Collections;
-import java.util.List;
-
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
 
     public static final int REQUEST_PERMISSIONS_LOCATION = 1;
-
-    LocationManager locationManager;
-    LocationListener locationListener;
 
     private FusedLocationProviderClient fusedLocationClient;
     public static final String TAG = "MapsActivity";
@@ -49,6 +41,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     TextView latTV;
     TextView lngTV;
     Button markerButton;
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.center:
+                // TODO -- logic to do center map here
+                Toast.makeText(this, "Centering on the user!", Toast.LENGTH_SHORT).show();
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    Log.i(TAG, "Check");
+                    return true;
+                }
+                fusedLocationClient.getLastLocation()
+                        .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                            @Override
+                            public void onSuccess(Location location) {
+                                if (location != null) {
+                                    LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 10));
+                                } else {
+                                    Log.e(TAG, "No location was found. Check if permissions is enabled....");
+                                }
+                            }
+                        });
+            default:
+                Toast.makeText(this, "There's no menu item for this", Toast.LENGTH_SHORT).show();
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +91,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         markerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                markerButton.setText("Long Click to Delete Marker");
                 if (ActivityCompat.checkSelfPermission(v.getContext(),
                         Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                         ActivityCompat.checkSelfPermission(v.getContext(),
@@ -80,6 +108,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 mMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation));
                             }
                         });
+            }
+        });
+
+        markerButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mMap.clear();
+                markerButton.setText("Add marker");
+                return true;
             }
         });
 
